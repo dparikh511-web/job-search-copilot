@@ -1,0 +1,19 @@
+<div class="login-page">
+  <form class="login-card" (ngSubmit)="submit()">
+    <h1>Job Search Copilot</h1>
+    <label>
+      Username
+      <input type="text" name="username" [(ngModel)]="username" autocomplete="username" />
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" />
+    </label>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Checking…' : 'Log in' }}
+    </button>
+  </form>
+</div>

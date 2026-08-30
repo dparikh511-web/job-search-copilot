@@ -1,0 +1,77 @@
+<div class="page">
+  <a routerLink="/" class="back-link">&larr; Back to jobs</a>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (!job()) {
+    <p>Job not found.</p>
+  } @else {
+    <h1>{{ job()!.title }}</h1>
+    <h2>{{ job()!.company }} &middot; {{ job()!.location }}</h2>
+
+    <div class="meta-row">
+      <span class="badge">Stack match: {{ job()!.stack_match_score !== null ? (job()!.stack_match_score! * 100 | number: '1.0-0') + '%' : 'n/a' }}</span>
+      <span class="badge">H1B: {{ job()!.h1b_match ? 'Yes' : 'No' }}</span>
+      <span class="badge">Status: {{ job()!.status }}</span>
+      <a [href]="job()!.url" target="_blank" class="badge link">View on LinkedIn</a>
+      @if (job()!.status === 'applied') {
+        <span class="badge applied">Applied ✓</span>
+      } @else {
+        <button class="mark-applied-btn" (click)="markApplied()">Mark as Applied</button>
+      }
+    </div>
+
+    @if (application(); as app) {
+      <div class="download-panel">
+        <h3>Generated resume ready</h3>
+        <a [href]="pdfUrl()" target="_blank" class="download-btn">Download PDF</a>
+        <a [href]="docxUrl()" target="_blank" class="download-btn secondary">Download DOCX</a>
+      </div>
+
+      <div class="resume-preview">
+        <h3>{{ app.resume.name }}</h3>
+        <p class="contact">{{ app.resume.contact }}</p>
+        <p class="summary">{{ app.resume.summary }}</p>
+
+        @for (skill of app.resume.skills; track skill.category) {
+          <p><strong>{{ skill.category }}:</strong> {{ skill.items.join(', ') }}</p>
+        }
+
+        @for (exp of app.resume.experience; track exp.title) {
+          <div class="exp">
+            <strong>{{ exp.title }} | {{ exp.company }} | {{ exp.location }} | {{ exp.dates }}</strong>
+            @for (section of exp.sections; track $index) {
+              @if (section.label) {
+                <div class="sub-label">{{ section.label }}</div>
+              }
+              <ul>
+                @for (bullet of section.bullets; track bullet) {
+                  <li>{{ bullet }}</li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        @if (app.resume.projects && app.resume.projects.length > 0) {
+          <div class="exp">
+            <strong>Projects</strong>
+            @for (project of app.resume.projects; track project.name) {
+              <div class="sub-label">{{ project.name }}</div>
+              <ul>
+                @for (bullet of project.bullets; track bullet) {
+                  <li>{{ bullet }}</li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="no-application">No resume generated for this job (it may have been rejected during matching).</p>
+    }
+
+    <h3>Job description</h3>
+    <pre class="job-description">{{ job()!.description }}</pre>
+  }
+</div>

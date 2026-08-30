@@ -1,0 +1,79 @@
+<div class="page">
+  <h1>Job Search Copilot</h1>
+
+  <section class="run-panel">
+    <h2>Run digest now</h2>
+    <div class="run-form">
+      <label>
+        Profile
+        <select [(ngModel)]="runProfileLabel">
+          @for (p of profiles(); track p.id) {
+            <option [value]="p.profile_label">{{ p.profile_label }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Keywords
+        <input type="text" [(ngModel)]="runKeywords" />
+      </label>
+      <label>
+        Location
+        <input type="text" [(ngModel)]="runLocation" />
+      </label>
+      <label>
+        Limit
+        <input type="number" [(ngModel)]="runLimit" min="1" max="20" />
+      </label>
+      <button (click)="runDigestNow()" [disabled]="running()">
+        {{ running() ? 'Running…' : 'Run digest' }}
+      </button>
+    </div>
+    @if (runResultMessage()) {
+      <p class="run-result">{{ runResultMessage() }}</p>
+    }
+  </section>
+
+  <section class="filter-panel">
+    <label>
+      Filter by status
+      <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+        <option value="">All</option>
+        <option value="digested">Digested (matched + generated)</option>
+        <option value="matched">Matched (pending generation)</option>
+        <option value="rejected">Rejected</option>
+        <option value="applied">Applied</option>
+      </select>
+    </label>
+  </section>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (jobs().length === 0) {
+    <p>No jobs yet — run a digest above to pull some in.</p>
+  } @else {
+    <table class="job-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Company</th>
+          <th>Location</th>
+          <th>Stack match</th>
+          <th>H1B</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (job of jobs(); track job.id) {
+          <tr [routerLink]="['/job', job.id]" class="job-row">
+            <td>{{ job.title }}</td>
+            <td>{{ job.company }}</td>
+            <td>{{ job.location }}</td>
+            <td>{{ scorePercent(job.stack_match_score) }}</td>
+            <td>{{ job.h1b_match ? 'Yes' : 'No' }}</td>
+            <td><span class="status-badge" [class]="'status-' + job.status">{{ job.status }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
