@@ -10,7 +10,9 @@ import {
 import { StructuredResume } from "./resumeRenderer";
 
 export async function renderResumePdf(html: string): Promise<Buffer> {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   try {
     const page = await browser.newPage();
     await page.setViewport({ width: 816, height: 1056 });
