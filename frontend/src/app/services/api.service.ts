@@ -14,8 +14,11 @@ export class ApiService {
     return this.http.get<Profile[]>(`${BASE_URL}/profile`);
   }
 
-  getJobs(status?: string): Observable<Job[]> {
-    const url = status ? `${BASE_URL}/jobs?status=${status}` : `${BASE_URL}/jobs`;
+  getJobs(status?: string, date?: string): Observable<Job[]> {
+    const params: string[] = [];
+    if (status) params.push(`status=${status}`);
+    if (date) params.push(`date=${date}`);
+    const url = params.length > 0 ? `${BASE_URL}/jobs?${params.join('&')}` : `${BASE_URL}/jobs`;
     return this.http.get<Job[]>(url);
   }
 

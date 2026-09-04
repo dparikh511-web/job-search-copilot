@@ -1,13 +1,14 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { Job, Application } from '../../models/types';
 
 @Component({
   selector: 'app-job-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './job-detail.component.html',
   styleUrl: './job-detail.component.scss',
 })
@@ -16,7 +17,7 @@ export class JobDetailComponent implements OnInit {
   application = signal<Application | null>(null);
   loading = signal(true);
 
-  constructor(private route: ActivatedRoute, private api: ApiService) {}
+  constructor(private route: ActivatedRoute, private api: ApiService, private location: Location) {}
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -41,5 +42,11 @@ export class JobDetailComponent implements OnInit {
     const job = this.job();
     if (!job) return;
     this.api.updateJobStatus(job.id, 'applied').subscribe((updated) => this.job.set(updated));
+  }
+
+  goBack(): void {
+    // Uses browser history instead of routerLink="/" so whatever filters were
+    // applied on the job list (stored in its URL query params) are preserved.
+    this.location.back();
   }
 }

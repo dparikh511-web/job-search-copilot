@@ -18,11 +18,21 @@ section {
   border-radius: 8px;
 }
 
-.run-form {
+.run-form,
+.filter-panel {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: end;
+}
+
+.clear-filters-btn {
+  background: #eee;
+  color: #333;
+}
+
+.clear-filters-btn:hover {
+  background: #ddd;
 }
 
 label {

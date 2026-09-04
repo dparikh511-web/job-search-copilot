@@ -8,9 +8,21 @@ jobsRouter.get(
   "/",
   asyncHandler(async (req, res) => {
     const status = typeof req.query.status === "string" ? req.query.status : null;
-    const rows = status
-      ? await query("SELECT * FROM jobs WHERE status = $1 ORDER BY id DESC", [status])
-      : await query("SELECT * FROM jobs ORDER BY id DESC");
+    const date = typeof req.query.date === "string" ? req.query.date : null;
+
+    const conditions: string[] = [];
+    const params: string[] = [];
+    if (status) {
+      params.push(status);
+      conditions.push(`status = $${params.length}`);
+    }
+    if (date) {
+      params.push(date);
+      conditions.push(`scraped_at::date = $${params.length}::date`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const rows = await query(`SELECT * FROM jobs ${where} ORDER BY id DESC`, params);
     res.json(rows);
   })
 );

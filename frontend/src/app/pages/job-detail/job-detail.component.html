@@ -1,5 +1,5 @@
 <div class="page">
-  <a routerLink="/" class="back-link">&larr; Back to jobs</a>
+  <button type="button" (click)="goBack()" class="back-link">&larr; Back to jobs</button>
 
   @if (loading()) {
     <p>Loading…</p>

@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { Job, Profile } from '../../models/types';
 
@@ -17,6 +17,7 @@ export class JobListComponent implements OnInit {
   profiles = signal<Profile[]>([]);
   loading = signal(true);
   statusFilter = '';
+  dateFilter = '';
 
   runProfileLabel = '';
   runKeywords = 'Software Engineer';
@@ -25,10 +26,14 @@ export class JobListComponent implements OnInit {
   running = signal(false);
   runResultMessage = signal('');
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
-    this.loadJobs();
+    this.route.queryParamMap.subscribe((params) => {
+      this.statusFilter = params.get('status') ?? '';
+      this.dateFilter = params.get('date') ?? '';
+      this.loadJobs();
+    });
     this.api.getProfiles().subscribe((profiles) => {
       this.profiles.set(profiles);
       if (profiles.length > 0) this.runProfileLabel = profiles[0].profile_label;
@@ -37,7 +42,7 @@ export class JobListComponent implements OnInit {
 
   loadJobs(): void {
     this.loading.set(true);
-    this.api.getJobs(this.statusFilter || undefined).subscribe({
+    this.api.getJobs(this.statusFilter || undefined, this.dateFilter || undefined).subscribe({
       next: (jobs) => {
         this.jobs.set(jobs);
         this.loading.set(false);
@@ -47,7 +52,20 @@ export class JobListComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.loadJobs();
+    // Filters live in the URL's query params (not just component state) so they
+    // survive navigating to a job's detail page and back.
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: this.statusFilter || null, date: this.dateFilter || null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  clearFilters(): void {
+    this.statusFilter = '';
+    this.dateFilter = '';
+    this.onFilterChange();
   }
 
   scorePercent(score: number | null): string {
