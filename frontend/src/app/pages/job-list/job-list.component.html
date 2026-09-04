@@ -67,6 +67,8 @@
           <th>Stack match</th>
           <th>H1B</th>
           <th>Status</th>
+          <th>Date</th>
+          <th>Date posted</th>
         </tr>
       </thead>
       <tbody>
@@ -78,6 +80,8 @@
             <td>{{ scorePercent(job.stack_match_score) }}</td>
             <td>{{ job.h1b_match ? 'Yes' : 'No' }}</td>
             <td><span class="status-badge" [class]="'status-' + job.status">{{ job.status }}</span></td>
+            <td>{{ job.scraped_at | date: 'MMM d, y' }}</td>
+            <td>{{ job.posted_date ? (job.posted_date | date: 'MMM d, y') : '—' }}</td>
           </tr>
         }
       </tbody>
