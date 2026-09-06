@@ -38,6 +38,10 @@ export class ApiService {
     return `${BASE_URL}/applications/${applicationId}/docx`;
   }
 
+  getCoverLetterPdfUrl(applicationId: number): string {
+    return `${BASE_URL}/applications/${applicationId}/coverletter/pdf`;
+  }
+
   runDigest(profileLabel: string, keywords: string, location: string, limit = 5): Observable<DigestRunSummary> {
     return this.http.post<DigestRunSummary>(`${BASE_URL}/digest/run`, {
       profileLabel,

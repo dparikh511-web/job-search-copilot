@@ -67,6 +67,16 @@
           </div>
         }
       </div>
+
+      @if (app.cover_letter_text) {
+        <div class="cover-letter-panel">
+          <div class="cover-letter-header">
+            <h3>Cover letter</h3>
+            <a [href]="coverLetterPdfUrl()" target="_blank" class="download-btn secondary">Download PDF</a>
+          </div>
+          <pre class="cover-letter-text">{{ app.cover_letter_text }}</pre>
+        </div>
+      }
     } @else {
       <p class="no-application">No resume generated for this job (it may have been rejected during matching).</p>
     }

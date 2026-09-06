@@ -83,6 +83,70 @@ function renderEducation(edu: ResumeEducation): string {
   return `<div class="edu-line"><strong>${escapeHtml(edu.school)}</strong> - ${escapeHtml(edu.degree)}, ${escapeHtml(edu.date)}${gpa}</div>`;
 }
 
+export function renderCoverLetterHtml(name: string, contact: string, coverLetterText: string): string {
+  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const paragraphs = coverLetterText
+    .split(/\n\s*\n/)
+    .map((p) => `<p>${escapeHtml(p.trim()).replace(/\n/g, "<br>")}</p>`)
+    .join("\n");
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(name)} - Cover Letter</title>
+<style>
+  @page { size: letter; margin: 0; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ddd;
+  }
+  body {
+    font-family: Carlito, Calibri, Arial, sans-serif;
+  }
+  #page {
+    width: 816px;
+    min-height: 1056px;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    padding: 48px 56px;
+    font-size: 14px;
+    line-height: 1.5em;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6em;
+    margin: 0 0 0.15em;
+  }
+  .contact {
+    text-align: center;
+    font-size: 0.9em;
+    margin-bottom: 1.5em;
+  }
+  .date {
+    margin-bottom: 1.2em;
+  }
+  p { margin: 0 0 1em; }
+  @media print {
+    body { background: white; }
+    #page { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div id="page">
+  <h1>${escapeHtml(name)}</h1>
+  <div class="contact">${escapeHtml(contact)}</div>
+  <div class="date">${date}</div>
+  ${paragraphs}
+</div>
+</body>
+</html>`;
+}
+
 export function renderResumeHtml(resume: StructuredResume): string {
   return `<!doctype html>
 <html>

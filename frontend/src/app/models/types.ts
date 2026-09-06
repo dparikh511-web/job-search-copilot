@@ -60,6 +60,7 @@ export interface Application {
   job_id: number;
   profile_id: number;
   resume: StructuredResume;
+  cover_letter_text: string | null;
   digest_date: string;
   generated_at: string;
 }

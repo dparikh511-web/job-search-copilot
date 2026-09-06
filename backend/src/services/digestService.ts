@@ -3,7 +3,7 @@ import { normalizeEmployerName, STACK_MATCH_SCORE_THRESHOLD, isAllowedLocation }
 import { scrapeJobs } from "./apifyService";
 import { matchH1bSponsor, detectSponsorshipDisclaimer } from "./lcaMatcher";
 import { scoreStackMatch } from "./stackMatcher";
-import { generateTailoredResume, ProfileForGeneration } from "./claudeService";
+import { generateApplicationMaterials, ProfileForGeneration } from "./claudeService";
 import { renderResumeHtml } from "./resumeRenderer";
 import { renderResumePdf, renderResumeDocx } from "./documentExportService";
 import { sendDigestEmail } from "./emailService";
@@ -57,7 +57,7 @@ export async function runDigest(options: DigestRunOptions): Promise<DigestRunSum
       job.externalId,
     ]);
 
-    if (existing.length > 0 && existing[0].status === "digested") {
+    if (existing.length > 0 && (existing[0].status === "digested" || existing[0].status === "applied")) {
       summary.alreadyProcessed++;
       continue;
     }
@@ -111,7 +111,7 @@ export async function runDigest(options: DigestRunOptions): Promise<DigestRunSum
     }
 
     try {
-      const structuredResume = await generateTailoredResume(profile, job.description);
+      const { resume: structuredResume, coverLetter } = await generateApplicationMaterials(profile, job.description);
       const html = renderResumeHtml(structuredResume);
       const [pdfBuffer, docxBuffer] = await Promise.all([
         renderResumePdf(html),
@@ -119,9 +119,9 @@ export async function runDigest(options: DigestRunOptions): Promise<DigestRunSum
       ]);
 
       await query(
-        `INSERT INTO applications (job_id, profile_id, resume_text, digest_date)
-         VALUES ($1, $2, $3, $4)`,
-        [jobId, profile.id, JSON.stringify(structuredResume), today]
+        `INSERT INTO applications (job_id, profile_id, resume_text, cover_letter_text, digest_date)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [jobId, profile.id, JSON.stringify(structuredResume), coverLetter, today]
       );
 
       const emailHtml = `

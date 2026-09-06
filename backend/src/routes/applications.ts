@@ -1,16 +1,21 @@
 import { Router } from "express";
 import { query } from "../db/client";
-import { renderResumeHtml, StructuredResume } from "../services/resumeRenderer";
+import { renderResumeHtml, renderCoverLetterHtml, StructuredResume } from "../services/resumeRenderer";
 import { renderResumePdf, renderResumeDocx } from "../services/documentExportService";
 import { asyncHandler } from "./asyncHandler";
 
 export const applicationsRouter = Router();
+
+function contentDisposition(filename: string): string {
+  return `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
+}
 
 interface ApplicationRow {
   id: number;
   job_id: number;
   profile_id: number;
   resume_text: string;
+  cover_letter_text: string | null;
   digest_date: string;
   generated_at: string;
 }
@@ -49,7 +54,7 @@ applicationsRouter.get(
     const html = renderResumeHtml(resume);
     const pdfBuffer = await renderResumePdf(html);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="resume-${application.id}.pdf"`);
+    res.setHeader("Content-Disposition", contentDisposition(`${resume.name}.pdf`));
     res.send(pdfBuffer);
   })
 );
@@ -68,7 +73,28 @@ applicationsRouter.get(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
-    res.setHeader("Content-Disposition", `attachment; filename="resume-${application.id}.docx"`);
+    res.setHeader("Content-Disposition", contentDisposition(`${resume.name}.docx`));
     res.send(docxBuffer);
+  })
+);
+
+applicationsRouter.get(
+  "/:id/coverletter/pdf",
+  asyncHandler(async (req, res) => {
+    const application = await loadApplication(req.params.id);
+    if (!application) {
+      res.status(404).json({ error: "Application not found" });
+      return;
+    }
+    if (!application.cover_letter_text) {
+      res.status(404).json({ error: "No cover letter generated for this application" });
+      return;
+    }
+    const resume = JSON.parse(application.resume_text) as StructuredResume;
+    const html = renderCoverLetterHtml(resume.name, resume.contact, application.cover_letter_text);
+    const pdfBuffer = await renderResumePdf(html);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", contentDisposition(`${resume.name} Coverletter.pdf`));
+    res.send(pdfBuffer);
   })
 );

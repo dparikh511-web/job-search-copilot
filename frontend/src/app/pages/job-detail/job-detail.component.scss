@@ -104,6 +104,31 @@ h2 { font-size: 1.1em; font-weight: 400; color: #555; margin-bottom: 16px; }
   margin-top: 6px;
 }
 
+.cover-letter-panel {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.cover-letter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cover-letter-header h3 {
+  margin: 0;
+}
+
+.cover-letter-text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
 .no-application {
   color: #991b1b;
   background: #fee2e2;

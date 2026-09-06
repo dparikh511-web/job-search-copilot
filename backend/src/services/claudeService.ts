@@ -12,14 +12,19 @@ export interface ProfileForGeneration {
   target_stack: string[];
 }
 
+export interface GeneratedApplication {
+  resume: StructuredResume;
+  coverLetter: string;
+}
+
 async function callClaude(
   profile: ProfileForGeneration,
   jobDescription: string
-): Promise<StructuredResume | null> {
+): Promise<GeneratedApplication | null> {
   const response = await anthropic.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 16384,
-    system: `You are an expert technical resume writer. Given a candidate's background and a job description, produce a tailored resume. The resume has to look professional and not read as AI-written.
+    system: `You are an expert technical resume writer. Given a candidate's background and a job description, produce a tailored resume and cover letter. Both have to look professional and not read as AI-written.
 
     Summary: 45-55 words. If the most recent role spans multiple areas of work (e.g. frontend and backend), split it into labeled sub-sections like the reference resume below (e.g. "Frontend:" and "Backend:", each with their own bullets) instead of one flat list — 7-8 bullets under the primary sub-section, 2-3 under the secondary one, 18-24 words each. Older/shorter role: 2-3 bullet points at 15-20 words each. Skills: categorized into labeled lines by type (e.g. Programming Languages, Frameworks and Libraries, Databases, DevOps and Tools, AI Tools), matching the reference resume's categories, not one flat comma-separated line. Total resume body should be 380-440 words — err toward the lower end when in doubt, since going over costs a page.
 
@@ -32,23 +37,28 @@ async function callClaude(
 
     Do not use buzzwords: "leverage," "utilize," "seamless," "robust," "cutting-edge," "dynamic," "synergy," "spearheaded."
 
+    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Open by naming the specific role and company. Middle paragraph(s) connect 2-3 concrete achievements from the candidate's background (same factual-accuracy rule as the resume) to what the job description asks for — don't just restate the resume. Close with a brief, confident call to action. Same tone rules as the resume: no buzzwords, no em-dashes, no Oxford comma, doesn't read as AI-written. Plain text only, no markdown, paragraphs separated by a blank line.
+
     Respond with ONLY valid JSON in this exact shape, no markdown formatting or code fences, no extra fields:
     {
-      "name": "...",
-      "contact": "...",
-      "summary": "...",
-      "skills": [{ "category": "...", "items": ["...", "..."] }],
-      "experience": [
-        {
-          "title": "...",
-          "company": "...",
-          "location": "...",
-          "dates": "...",
-          "sections": [{ "label": "..." (or null if this role has no sub-sections), "bullets": ["...", "..."] }]
-        }
-      ],
-      "projects": [{ "name": "...", "bullets": ["...", "..."] }],
-      "education": [{ "school": "...", "degree": "...", "date": "...", "gpa": "..." }]
+      "resume": {
+        "name": "...",
+        "contact": "...",
+        "summary": "...",
+        "skills": [{ "category": "...", "items": ["...", "..."] }],
+        "experience": [
+          {
+            "title": "...",
+            "company": "...",
+            "location": "...",
+            "dates": "...",
+            "sections": [{ "label": "..." (or null if this role has no sub-sections), "bullets": ["...", "..."] }]
+          }
+        ],
+        "projects": [{ "name": "...", "bullets": ["...", "..."] }],
+        "education": [{ "school": "...", "degree": "...", "date": "...", "gpa": "..." }]
+      },
+      "coverLetter": "..."
     }
     Only include "projects" if the reference resume below has a Projects section. If included, keep it to 2-3 bullets total, 15-20 words each, re-tailored to emphasize whatever is most relevant to the job description — same factual-accuracy rule applies (project name stays exact).`,
     messages: [
@@ -68,7 +78,7 @@ async function callClaude(
     return null;
   }
 
-  return JSON.parse(textBlock.text) as StructuredResume;
+  return JSON.parse(textBlock.text) as GeneratedApplication;
 }
 
 /**
@@ -76,10 +86,10 @@ async function callClaude(
  * most of the token budget before any output text starts, especially with a long job
  * description. Retry once before giving up, since this is intermittent, not deterministic.
  */
-export async function generateTailoredResume(
+export async function generateApplicationMaterials(
   profile: ProfileForGeneration,
   jobDescription: string
-): Promise<StructuredResume> {
+): Promise<GeneratedApplication> {
   const first = await callClaude(profile, jobDescription);
   if (first) return first;
 

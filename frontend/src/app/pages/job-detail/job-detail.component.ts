@@ -38,6 +38,11 @@ export class JobDetailComponent implements OnInit {
     return app ? this.api.getDocxUrl(app.id) : '';
   }
 
+  coverLetterPdfUrl(): string {
+    const app = this.application();
+    return app ? this.api.getCoverLetterPdfUrl(app.id) : '';
+  }
+
   markApplied(): void {
     const job = this.job();
     if (!job) return;
