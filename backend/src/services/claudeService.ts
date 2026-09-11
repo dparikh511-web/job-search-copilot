@@ -17,6 +17,55 @@ export interface GeneratedApplication {
   coverLetter: string;
 }
 
+/**
+ * Claude sometimes emits a literal newline/tab inside a JSON string value (e.g. the
+ * multi-paragraph coverLetter field) instead of an escaped \n, which JSON.parse rejects
+ * as a "Bad control character". This walks the text tracking string-literal boundaries
+ * (respecting \" escapes) and escapes raw control characters only when inside a string,
+ * leaving structural whitespace between JSON tokens untouched.
+ */
+function escapeControlCharsInJsonStrings(text: string): string {
+  let result = "";
+  let inString = false;
+  let escapedNext = false;
+
+  for (const ch of text) {
+    if (inString) {
+      if (escapedNext) {
+        result += ch;
+        escapedNext = false;
+      } else if (ch === "\\") {
+        result += ch;
+        escapedNext = true;
+      } else if (ch === '"') {
+        inString = false;
+        result += ch;
+      } else if (ch.charCodeAt(0) < 0x20) {
+        if (ch === "\n") result += "\\n";
+        else if (ch === "\r") result += "\\r";
+        else if (ch === "\t") result += "\\t";
+        else result += "\\u" + ch.charCodeAt(0).toString(16).padStart(4, "0");
+      } else {
+        result += ch;
+      }
+    } else {
+      if (ch === '"') inString = true;
+      result += ch;
+    }
+  }
+
+  return result;
+}
+
+function parseGeneratedApplication(text: string): GeneratedApplication {
+  try {
+    return JSON.parse(text) as GeneratedApplication;
+  } catch (err) {
+    if (!(err instanceof SyntaxError)) throw err;
+    return JSON.parse(escapeControlCharsInJsonStrings(text)) as GeneratedApplication;
+  }
+}
+
 async function callClaude(
   profile: ProfileForGeneration,
   jobDescription: string
@@ -37,7 +86,7 @@ async function callClaude(
 
     Do not use buzzwords: "leverage," "utilize," "seamless," "robust," "cutting-edge," "dynamic," "synergy," "spearheaded."
 
-    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Open by naming the specific role and company. Middle paragraph(s) connect 2-3 concrete achievements from the candidate's background (same factual-accuracy rule as the resume) to what the job description asks for — don't just restate the resume. Close with a brief, confident call to action. Same tone rules as the resume: no buzzwords, no em-dashes, no Oxford comma, doesn't read as AI-written. Plain text only, no markdown, paragraphs separated by a blank line.
+    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Open by naming the specific role and company. Middle paragraph(s) connect 2-3 concrete achievements from the candidate's background (same factual-accuracy rule as the resume) to what the job description asks for — don't just restate the resume. Close with a brief, confident call to action. Same tone rules as the resume: no buzzwords, no em-dashes, no Oxford comma, doesn't read as AI-written. Plain text only, no markdown. The "coverLetter" JSON value must be a single-line JSON string: encode each paragraph break as the two literal characters backslash-n (\\n), never an actual line break inside the string.
 
     Respond with ONLY valid JSON in this exact shape, no markdown formatting or code fences, no extra fields:
     {
@@ -78,7 +127,7 @@ async function callClaude(
     return null;
   }
 
-  return JSON.parse(textBlock.text) as GeneratedApplication;
+  return parseGeneratedApplication(textBlock.text);
 }
 
 /**
