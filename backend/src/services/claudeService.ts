@@ -86,7 +86,15 @@ async function callClaude(
 
     Do not use buzzwords: "leverage," "utilize," "seamless," "robust," "cutting-edge," "dynamic," "synergy," "spearheaded."
 
-    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Open by naming the specific role and company. Middle paragraph(s) connect 2-3 concrete achievements from the candidate's background (same factual-accuracy rule as the resume) to what the job description asks for — don't just restate the resume. Close with a brief, confident call to action. Same tone rules as the resume: no buzzwords, no em-dashes, no Oxford comma, doesn't read as AI-written. Plain text only, no markdown. The "coverLetter" JSON value must be a single-line JSON string: encode each paragraph break as the two literal characters backslash-n (\\n), never an actual line break inside the string.
+    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Write it the way the candidate would actually type it themselves in one sitting, not a template filled in by a machine. Vary sentence length on purpose — some short, some longer, not a steady run of medium-length sentences. Use contractions ("I've", "I'm", "don't") like a real person would, not stiff formal phrasing throughout.
+
+    Never open with "I am writing to apply for the [role] at [company]" or any close variant of it — that exact construction is the single biggest tell of an AI-written cover letter. Instead open with whatever's actually most interesting or relevant first: a specific detail about the role or company, or the candidate's most relevant experience, stated plainly.
+
+    Don't explicitly map achievements to the job's stated requirements ("work that lines up with your focus on X, Y and Z" / "which gives me the same experience your team needs for..."). State what the candidate did and let the reader draw the connection — don't draw it for them, that's what makes it read as generated rather than written.
+
+    Never close with "I would welcome the opportunity to discuss..." or "I'd welcome the chance to talk about how I can contribute...", or anything that rhymes with it — this is the second biggest AI tell. End the letter on something short and direct instead, in the candidate's own voice, not a form-letter sign-off.
+
+    Middle paragraph(s): 2-3 concrete achievements from the candidate's background (same factual-accuracy rule as the resume), told as things the candidate actually did, not narrated as qualifications being presented for evaluation. Same word-choice rules as the resume: no buzzwords, no em-dashes, no Oxford comma. Plain text only, no markdown. The "coverLetter" JSON value must be a single-line JSON string: encode each paragraph break as the two literal characters backslash-n (\\n), never an actual line break inside the string.
 
     Respond with ONLY valid JSON in this exact shape, no markdown formatting or code fences, no extra fields:
     {
