@@ -17,15 +17,15 @@ const DAILY_JOBS: DigestJobConfig[] = [
   {
     profileLabel: "Software Developer",
     searchKeywords: "Software Engineer Full Stack TypeScript Node",
-    searchLocation: "New York, United States",
-    limit: 30,
+    searchLocation: "United States",
+    limit: 45,
     targetMatches: 6,
   },
   {
     profileLabel: "Mobile Developer",
     searchKeywords: "Mobile Application Developer Ionic Angular",
     searchLocation: "United States",
-    limit: 25,
+    limit: 35,
     targetMatches: 5,
   },
 ];
