@@ -1,34 +1,67 @@
 import cron from "node-cron";
-import { runDigest } from "../services/digestService";
+import { runDigest, DigestRunSummary } from "../services/digestService";
 
-interface DigestJobConfig {
+interface DigestProfileConfig {
   profileLabel: string;
-  searchKeywords: string;
   searchLocation: string;
   limit: number;
   targetMatches: number;
+  // Tried in order, each a full extra Apify search, until targetMatches is hit or the
+  // list runs out. A single day's search terms can just underdeliver on real postings,
+  // so hitting a target reliably means being willing to search again with different
+  // terms, not just scraping a bigger pile of results from the same search.
+  keywordVariants: string[];
 }
 
-// One search per profile. `limit` is the raw candidate pool scraped from LinkedIn — it needs
-// to be generous since only a fraction of scraped jobs pass the H1B/stack/location filters.
-// `targetMatches` is the number of actual matched-and-emailed jobs we're aiming for; the run
-// stops early once it's hit, so a good day doesn't generate more resumes than needed.
-const DAILY_JOBS: DigestJobConfig[] = [
+const DAILY_JOBS: DigestProfileConfig[] = [
   {
     profileLabel: "Software Developer",
-    searchKeywords: "Software Engineer Full Stack TypeScript Node",
     searchLocation: "United States",
     limit: 45,
     targetMatches: 6,
+    keywordVariants: [
+      "Software Engineer Full Stack TypeScript Node",
+      "Full Stack Developer React Node TypeScript",
+      "Backend Engineer Node TypeScript React",
+    ],
   },
   {
     profileLabel: "Mobile Developer",
-    searchKeywords: "Mobile Application Developer Ionic Angular",
     searchLocation: "United States",
     limit: 35,
     targetMatches: 5,
+    keywordVariants: [
+      "Mobile Application Developer Ionic Angular",
+      "Mobile Developer Ionic Cordova Android",
+      "Hybrid Mobile Developer React Native TypeScript",
+    ],
   },
 ];
+
+async function runProfileUntilTarget(config: DigestProfileConfig): Promise<DigestRunSummary> {
+  const combined: DigestRunSummary = { scraped: 0, alreadyProcessed: 0, rejected: 0, matched: 0, failed: 0 };
+
+  for (const searchKeywords of config.keywordVariants) {
+    const remaining = config.targetMatches - combined.matched;
+    if (remaining <= 0) break;
+
+    const summary = await runDigest({
+      profileLabel: config.profileLabel,
+      searchKeywords,
+      searchLocation: config.searchLocation,
+      limit: config.limit,
+      targetMatches: remaining,
+    });
+
+    combined.scraped += summary.scraped;
+    combined.alreadyProcessed += summary.alreadyProcessed;
+    combined.rejected += summary.rejected;
+    combined.matched += summary.matched;
+    combined.failed += summary.failed;
+  }
+
+  return combined;
+}
 
 export function startScheduler(): void {
   // Runs every day at 6:00 AM Eastern Time, regardless of the server's own timezone
@@ -39,7 +72,7 @@ export function startScheduler(): void {
       console.log(`[${new Date().toISOString()}] Running scheduled daily digest...`);
       for (const job of DAILY_JOBS) {
         try {
-          const summary = await runDigest(job);
+          const summary = await runProfileUntilTarget(job);
           console.log(`Digest for "${job.profileLabel}":`, summary);
         } catch (err) {
           console.error(`Digest failed for "${job.profileLabel}":`, err);
