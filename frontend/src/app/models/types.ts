@@ -65,6 +65,18 @@ export interface Application {
   generated_at: string;
 }
 
+export interface ApplicationAnswers {
+  phone?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
+  workAuthorization?: string;
+  yearsOfExperience?: string;
+  willingToRelocate?: string;
+  desiredSalary?: string;
+  earliestStartDate?: string;
+  noticePeriod?: string;
+}
+
 export interface Profile {
   id: number;
   profile_label: string;
@@ -74,6 +86,7 @@ export interface Profile {
   target_stack: string[];
   target_locations: string[];
   master_resume_text: string;
+  application_answers: ApplicationAnswers;
 }
 
 export interface DigestRunSummary {

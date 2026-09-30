@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS profile (
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE profile ADD COLUMN IF NOT EXISTS application_answers JSONB NOT NULL DEFAULT '{}';
 
 CREATE TABLE IF NOT EXISTS lca_employers (
   id                        SERIAL PRIMARY KEY,

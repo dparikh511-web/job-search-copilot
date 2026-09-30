@@ -28,6 +28,21 @@
         <a [href]="docxUrl()" target="_blank" class="download-btn secondary">Download DOCX</a>
       </div>
 
+      @if (quickFillEntries().length > 0) {
+        <div class="quick-fill-panel">
+          <h3>Quick-fill answers</h3>
+          <p class="quick-fill-hint">Click a value to copy it for pasting into the application form.</p>
+          <div class="quick-fill-grid">
+            @for (entry of quickFillEntries(); track entry.label) {
+              <button type="button" class="quick-fill-item" (click)="copyToClipboard(entry)">
+                <span class="quick-fill-label">{{ entry.label }}</span>
+                <span class="quick-fill-value">{{ copiedField() === entry.label ? 'Copied!' : entry.value }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       <div class="resume-preview">
         <h3>{{ app.resume.name }}</h3>
         <p class="contact">{{ app.resume.contact }}</p>

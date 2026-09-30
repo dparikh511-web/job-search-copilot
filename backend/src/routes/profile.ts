@@ -23,3 +23,23 @@ profileRouter.get(
     res.json(rows[0]);
   })
 );
+
+profileRouter.patch(
+  "/:id/application-answers",
+  asyncHandler(async (req, res) => {
+    const answers = req.body ?? {};
+    if (typeof answers !== "object" || Array.isArray(answers)) {
+      res.status(400).json({ error: "Body must be a JSON object of answer fields" });
+      return;
+    }
+    const rows = await query(
+      "UPDATE profile SET application_answers = $1, updated_at = now() WHERE id = $2 RETURNING *",
+      [JSON.stringify(answers), req.params.id]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+    res.json(rows[0]);
+  })
+);

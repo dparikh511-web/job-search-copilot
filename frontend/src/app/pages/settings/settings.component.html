@@ -1,0 +1,67 @@
+<div class="page">
+  <a routerLink="/" class="back-link">&larr; Back to jobs</a>
+  <h1>Application answers</h1>
+  <p class="subtitle">
+    Standard answers you can quickly copy into application forms. These are saved per profile
+    and shown on each job's detail page.
+  </p>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else {
+    <label class="profile-picker">
+      Profile
+      <select [ngModel]="selectedProfileId" (ngModelChange)="selectProfile($event)">
+        @for (p of profiles(); track p.id) {
+          <option [value]="p.id">{{ p.profile_label }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="form-grid">
+      <label>
+        Phone
+        <input type="text" [(ngModel)]="answers.phone" />
+      </label>
+      <label>
+        LinkedIn URL
+        <input type="text" [(ngModel)]="answers.linkedinUrl" />
+      </label>
+      <label>
+        Portfolio / GitHub URL
+        <input type="text" [(ngModel)]="answers.portfolioUrl" />
+      </label>
+      <label>
+        Work authorization
+        <input type="text" [(ngModel)]="answers.workAuthorization" placeholder="e.g. Will require H1B sponsorship" />
+      </label>
+      <label>
+        Years of experience
+        <input type="text" [(ngModel)]="answers.yearsOfExperience" />
+      </label>
+      <label>
+        Willing to relocate
+        <input type="text" [(ngModel)]="answers.willingToRelocate" placeholder="e.g. Yes, anywhere in the US" />
+      </label>
+      <label>
+        Desired salary
+        <input type="text" [(ngModel)]="answers.desiredSalary" />
+      </label>
+      <label>
+        Earliest start date
+        <input type="text" [(ngModel)]="answers.earliestStartDate" />
+      </label>
+      <label>
+        Notice period
+        <input type="text" [(ngModel)]="answers.noticePeriod" />
+      </label>
+    </div>
+
+    <button type="button" (click)="save()" [disabled]="saving()">
+      {{ saving() ? 'Saving…' : 'Save' }}
+    </button>
+    @if (saveMessage()) {
+      <span class="save-message">{{ saveMessage() }}</span>
+    }
+  }
+</div>

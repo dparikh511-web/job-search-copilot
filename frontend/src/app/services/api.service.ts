@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Job, Application, Profile, DigestRunSummary } from '../models/types';
+import { Job, Application, Profile, DigestRunSummary, ApplicationAnswers } from '../models/types';
 import { environment } from '../../environments/environment';
 
 const BASE_URL = environment.apiBaseUrl;
@@ -12,6 +12,14 @@ export class ApiService {
 
   getProfiles(): Observable<Profile[]> {
     return this.http.get<Profile[]>(`${BASE_URL}/profile`);
+  }
+
+  getProfile(id: number): Observable<Profile> {
+    return this.http.get<Profile>(`${BASE_URL}/profile/${id}`);
+  }
+
+  updateApplicationAnswers(profileId: number, answers: ApplicationAnswers): Observable<Profile> {
+    return this.http.patch<Profile>(`${BASE_URL}/profile/${profileId}/application-answers`, answers);
   }
 
   getJobs(status?: string, date?: string): Observable<Job[]> {
