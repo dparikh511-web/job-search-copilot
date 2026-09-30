@@ -48,7 +48,7 @@
       Filter by date
       <input type="date" [(ngModel)]="dateFilter" (ngModelChange)="onFilterChange()" />
     </label>
-    @if (statusFilter || dateFilter) {
+    @if (statusFilter !== 'digested' || dateFilter) {
       <button type="button" class="clear-filters-btn" (click)="clearFilters()">Clear filters</button>
     }
   </section>

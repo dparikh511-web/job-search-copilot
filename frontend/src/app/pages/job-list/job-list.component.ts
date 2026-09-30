@@ -30,7 +30,7 @@ export class JobListComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
-      this.statusFilter = params.get('status') ?? '';
+      this.statusFilter = params.get('status') ?? 'digested';
       this.dateFilter = params.get('date') ?? '';
       this.loadJobs();
     });
@@ -63,7 +63,7 @@ export class JobListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.statusFilter = '';
+    this.statusFilter = 'digested';
     this.dateFilter = '';
     this.onFilterChange();
   }
