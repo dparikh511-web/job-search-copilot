@@ -33,7 +33,7 @@ export async function scrapeJobs(
   const run = await client.actor(LINKEDIN_JOBS_ACTOR).call({
     keywords,
     location,
-    datePosted: "pastWeek",
+    datePosted: "past24Hours",
     limitPerSource: limit,
     scrapeCompany: false,
   });
