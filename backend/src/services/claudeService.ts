@@ -71,7 +71,7 @@ async function callClaude(
   jobDescription: string
 ): Promise<GeneratedApplication | null> {
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-5",
+    model: "claude-sonnet-5-5",
     max_tokens: 16384,
     system: `You are an expert technical resume writer. Given a candidate's background and a job description, produce a tailored resume and cover letter. Both have to look professional and not read as AI-written.
 
