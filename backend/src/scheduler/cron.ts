@@ -64,10 +64,10 @@ async function runProfileUntilTarget(config: DigestProfileConfig): Promise<Diges
 }
 
 export function startScheduler(): void {
-  // Runs every day at 6:00 AM Eastern Time, regardless of the server's own timezone
+  // Runs weekdays at 6:00 PM Eastern Time, regardless of the server's own timezone
   // (cloud hosts typically default to UTC, which would silently shift this otherwise).
   cron.schedule(
-    "0 6 * * *",
+    "0 18 * * 1-5",
     async () => {
       console.log(`[${new Date().toISOString()}] Running scheduled daily digest...`);
       for (const job of DAILY_JOBS) {
@@ -82,5 +82,5 @@ export function startScheduler(): void {
     { timezone: "America/New_York" }
   );
 
-  console.log("Scheduler started — daily digest runs at 6:00 AM Eastern Time.");
+  console.log("Scheduler started — weekday digest runs at 6:00 PM Eastern Time.");
 }

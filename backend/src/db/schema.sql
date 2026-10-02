@@ -48,6 +48,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_company_normalized ON jobs (company_normalized);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs (status);
 
+ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_status_check;
+ALTER TABLE jobs ADD CONSTRAINT jobs_status_check
+  CHECK (status IN ('new','matched','generated','digested','applied','rejected','not_available'));
+
 CREATE TABLE IF NOT EXISTS applications (
   id                SERIAL PRIMARY KEY,
   job_id            INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,

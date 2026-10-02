@@ -107,6 +107,14 @@ export class JobDetailComponent implements OnInit {
     this.api.updateJobStatus(job.id, 'applied').subscribe((updated) => this.job.set(updated));
   }
 
+  markNotAvailable(): void {
+    const job = this.job();
+    if (!job) return;
+    // "Not available" removes it from the default (digested) list view rather than
+    // deleting the row outright, so it's reversible via the status filter if needed.
+    this.api.updateJobStatus(job.id, 'not_available').subscribe(() => this.goBack());
+  }
+
   goBack(): void {
     // Uses browser history instead of routerLink="/" so whatever filters were
     // applied on the job list (stored in its URL query params) are preserved.

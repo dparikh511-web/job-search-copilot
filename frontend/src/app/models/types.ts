@@ -12,7 +12,7 @@ export interface Job {
   stack_match_score: number | null;
   h1b_match: boolean;
   h1b_match_confidence: number | null;
-  status: 'new' | 'matched' | 'generated' | 'digested' | 'applied' | 'rejected';
+  status: 'new' | 'matched' | 'generated' | 'digested' | 'applied' | 'rejected' | 'not_available';
 }
 
 export interface ResumeSkillCategory {

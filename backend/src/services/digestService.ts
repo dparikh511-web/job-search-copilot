@@ -1,5 +1,12 @@
 import { query } from "../db/client";
-import { normalizeEmployerName, STACK_MATCH_SCORE_THRESHOLD, isAllowedLocation } from "../config/constants";
+import {
+  normalizeEmployerName,
+  STACK_MATCH_SCORE_THRESHOLD,
+  STACK_MATCH_SCORE_CEILING,
+  isAllowedLocation,
+  isSeniorTitle,
+  isJuniorTitle,
+} from "../config/constants";
 import { scrapeJobs } from "./apifyService";
 import { matchH1bSponsor, detectSponsorshipDisclaimer } from "./lcaMatcher";
 import { scoreStackMatch } from "./stackMatcher";
@@ -71,11 +78,14 @@ export async function runDigest(options: DigestRunOptions): Promise<DigestRunSum
       !disclaimer.explicitlyNoSponsorship && (h1bMatch.isMatch || disclaimer.explicitlySponsors);
 
     const stackMatch = scoreStackMatch(jobText, profile.target_stack);
-    const stackOk = stackMatch.score >= STACK_MATCH_SCORE_THRESHOLD;
+    const stackOk =
+      stackMatch.score >= STACK_MATCH_SCORE_THRESHOLD && stackMatch.score < STACK_MATCH_SCORE_CEILING;
 
     const locationOk = isAllowedLocation(job.location);
 
-    const isMatch = sponsorshipOk && stackOk && locationOk;
+    const levelOk = !isSeniorTitle(job.title) && !isJuniorTitle(job.title);
+
+    const isMatch = sponsorshipOk && stackOk && locationOk && levelOk;
 
     const upserted = await query<JobRow>(
       `INSERT INTO jobs

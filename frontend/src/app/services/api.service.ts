@@ -22,10 +22,11 @@ export class ApiService {
     return this.http.patch<Profile>(`${BASE_URL}/profile/${profileId}/application-answers`, answers);
   }
 
-  getJobs(status?: string, date?: string): Observable<Job[]> {
+  getJobs(status?: string, dateFrom?: string, dateTo?: string): Observable<Job[]> {
     const params: string[] = [];
     if (status) params.push(`status=${status}`);
-    if (date) params.push(`date=${date}`);
+    if (dateFrom) params.push(`dateFrom=${dateFrom}`);
+    if (dateTo) params.push(`dateTo=${dateTo}`);
     const url = params.length > 0 ? `${BASE_URL}/jobs?${params.join('&')}` : `${BASE_URL}/jobs`;
     return this.http.get<Job[]>(url);
   }

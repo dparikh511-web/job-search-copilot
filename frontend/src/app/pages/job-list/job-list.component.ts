@@ -17,7 +17,8 @@ export class JobListComponent implements OnInit {
   profiles = signal<Profile[]>([]);
   loading = signal(true);
   statusFilter = '';
-  dateFilter = '';
+  dateFromFilter = '';
+  dateToFilter = '';
 
   runProfileLabel = '';
   runKeywords = 'Software Engineer';
@@ -31,7 +32,8 @@ export class JobListComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
       this.statusFilter = params.get('status') ?? 'digested';
-      this.dateFilter = params.get('date') ?? '';
+      this.dateFromFilter = params.get('dateFrom') ?? '';
+      this.dateToFilter = params.get('dateTo') ?? '';
       this.loadJobs();
     });
     this.api.getProfiles().subscribe((profiles) => {
@@ -42,13 +44,15 @@ export class JobListComponent implements OnInit {
 
   loadJobs(): void {
     this.loading.set(true);
-    this.api.getJobs(this.statusFilter || undefined, this.dateFilter || undefined).subscribe({
-      next: (jobs) => {
-        this.jobs.set(jobs);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .getJobs(this.statusFilter || undefined, this.dateFromFilter || undefined, this.dateToFilter || undefined)
+      .subscribe({
+        next: (jobs) => {
+          this.jobs.set(jobs);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   onFilterChange(): void {
@@ -56,15 +60,30 @@ export class JobListComponent implements OnInit {
     // survive navigating to a job's detail page and back.
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { status: this.statusFilter || null, date: this.dateFilter || null },
+      queryParams: {
+        status: this.statusFilter || null,
+        dateFrom: this.dateFromFilter || null,
+        dateTo: this.dateToFilter || null,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
   }
 
+  filterToday(): void {
+    // Build from local date parts, not toISOString() (which is UTC and can
+    // land on the wrong calendar day in the evening for US timezones).
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    this.dateFromFilter = today;
+    this.dateToFilter = today;
+    this.onFilterChange();
+  }
+
   clearFilters(): void {
     this.statusFilter = 'digested';
-    this.dateFilter = '';
+    this.dateFromFilter = '';
+    this.dateToFilter = '';
     this.onFilterChange();
   }
 

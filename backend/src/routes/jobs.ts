@@ -8,7 +8,8 @@ jobsRouter.get(
   "/",
   asyncHandler(async (req, res) => {
     const status = typeof req.query.status === "string" ? req.query.status : null;
-    const date = typeof req.query.date === "string" ? req.query.date : null;
+    const dateFrom = typeof req.query.dateFrom === "string" ? req.query.dateFrom : null;
+    const dateTo = typeof req.query.dateTo === "string" ? req.query.dateTo : null;
 
     const conditions: string[] = [];
     const params: string[] = [];
@@ -16,9 +17,13 @@ jobsRouter.get(
       params.push(status);
       conditions.push(`status = $${params.length}`);
     }
-    if (date) {
-      params.push(date);
-      conditions.push(`scraped_at::date = $${params.length}::date`);
+    if (dateFrom) {
+      params.push(dateFrom);
+      conditions.push(`scraped_at::date >= $${params.length}::date`);
+    }
+    if (dateTo) {
+      params.push(dateTo);
+      conditions.push(`scraped_at::date <= $${params.length}::date`);
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -39,7 +44,7 @@ jobsRouter.get(
   })
 );
 
-const VALID_STATUSES = ["new", "matched", "generated", "digested", "applied", "rejected"];
+const VALID_STATUSES = ["new", "matched", "generated", "digested", "applied", "rejected", "not_available"];
 
 jobsRouter.patch(
   "/:id/status",

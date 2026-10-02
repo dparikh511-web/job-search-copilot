@@ -12,6 +12,10 @@ export function normalizeEmployerName(name: string): string {
 
 export const H1B_MATCH_CONFIDENCE_THRESHOLD = 0.82;
 export const STACK_MATCH_SCORE_THRESHOLD = 0.3;
+// A near-perfect keyword match (almost every target_stack term present) tends to mean the
+// posting demands the whole stack at once -- in practice that's a senior-tier expectation
+// even when the title doesn't say so.
+export const STACK_MATCH_SCORE_CEILING = 0.9;
 
 // Any US location is allowed — LinkedIn postings are almost always "City, ST" with a
 // two-letter state code, not the literal phrase "United States", so the filter has to
@@ -46,4 +50,20 @@ const ALLOWED_LOCATION_PATTERNS: RegExp[] = [
 
 export function isAllowedLocation(location: string): boolean {
   return ALLOWED_LOCATION_PATTERNS.some((pattern) => pattern.test(location));
+}
+
+// Matches "Senior X" and "Sr X" / "Sr. X" titles (periods stripped before matching so
+// "Sr." and "Sr" both hit the same word-boundary check).
+export function isSeniorTitle(title: string): boolean {
+  return /\b(senior|sr)\b/i.test(title.replace(/\./g, ""));
+}
+
+// Matches "Junior X" and numbered entry-level titles like "Software Developer I" /
+// "Software Engineer II" (but not "III"+, which more often signals senior/staff). The
+// numeral itself must be uppercase ("I"/"II", not "i"/"ii") even though "developer"/
+// "engineer" is matched case-insensitively -- a single /i regex can't mix the two.
+export function isJuniorTitle(title: string): boolean {
+  if (/\bjunior\b/i.test(title)) return true;
+  const match = title.match(/\b(?:developer|engineer)\s+(I|II)\b/i);
+  return match !== null && match[1] === match[1].toUpperCase();
 }

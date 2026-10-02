@@ -16,8 +16,11 @@
       <a [href]="job()!.url" target="_blank" class="badge link">View on LinkedIn</a>
       @if (job()!.status === 'applied') {
         <span class="badge applied">Applied ✓</span>
+      } @else if (job()!.status === 'not_available') {
+        <span class="badge not-available">Not available</span>
       } @else {
         <button class="mark-applied-btn" (click)="markApplied()">Mark as Applied</button>
+        <button class="mark-unavailable-btn" (click)="markNotAvailable()">Not Available</button>
       }
     </div>
 

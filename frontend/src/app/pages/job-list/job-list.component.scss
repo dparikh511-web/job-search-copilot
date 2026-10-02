@@ -38,12 +38,14 @@ section {
   align-items: end;
 }
 
-.clear-filters-btn {
+.clear-filters-btn,
+.today-btn {
   background: #eee;
   color: #333;
 }
 
-.clear-filters-btn:hover {
+.clear-filters-btn:hover,
+.today-btn:hover {
   background: #ddd;
 }
 
@@ -121,3 +123,4 @@ button:disabled {
 .status-matched { background: #fef3c7; color: #92400e; }
 .status-rejected { background: #fee2e2; color: #991b1b; }
 .status-applied { background: #dbeafe; color: #1e40af; }
+.status-not_available { background: #f3f4f6; color: #4b5563; }
