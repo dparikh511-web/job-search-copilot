@@ -27,7 +27,10 @@ jobsRouter.get(
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const rows = await query(`SELECT * FROM jobs ${where} ORDER BY id DESC`, params);
+    const rows = await query(
+      `SELECT * FROM jobs ${where} ORDER BY stack_match_score DESC NULLS LAST, id DESC`,
+      params
+    );
     res.json(rows);
   })
 );
