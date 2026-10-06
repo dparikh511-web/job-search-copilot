@@ -3,6 +3,7 @@ import {
   normalizeEmployerName,
   STACK_MATCH_SCORE_THRESHOLD,
   STACK_MATCH_SCORE_CEILING,
+  STACK_MATCH_H1B_OVERRIDE_THRESHOLD,
   isAllowedLocation,
   isSeniorTitle,
   isJuniorTitle,
@@ -74,10 +75,13 @@ export async function runDigest(options: DigestRunOptions): Promise<DigestRunSum
     const h1bMatch = disclaimer.explicitlyNoSponsorship
       ? { isMatch: false, confidence: 0, matchedEmployerName: null }
       : await matchH1bSponsor(job.company);
-    const sponsorshipOk =
-      !disclaimer.explicitlyNoSponsorship && (h1bMatch.isMatch || disclaimer.explicitlySponsors);
 
     const stackMatch = scoreStackMatch(jobText, profile.target_stack);
+    const strongStackMatch = stackMatch.score > STACK_MATCH_H1B_OVERRIDE_THRESHOLD;
+    const sponsorshipOk =
+      !disclaimer.explicitlyNoSponsorship &&
+      (h1bMatch.isMatch || disclaimer.explicitlySponsors || strongStackMatch);
+
     const stackOk =
       stackMatch.score >= STACK_MATCH_SCORE_THRESHOLD && stackMatch.score < STACK_MATCH_SCORE_CEILING;
 

@@ -16,6 +16,9 @@ export const STACK_MATCH_SCORE_THRESHOLD = 0.3;
 // posting demands the whole stack at once -- in practice that's a senior-tier expectation
 // even when the title doesn't say so.
 export const STACK_MATCH_SCORE_CEILING = 0.9;
+// A stack match above this lets a job through even with no H1B sponsor record (an explicit
+// "no sponsorship" statement in the posting still blocks it).
+export const STACK_MATCH_H1B_OVERRIDE_THRESHOLD = 0.6;
 
 // Any US location is allowed — LinkedIn postings are almost always "City, ST" with a
 // two-letter state code, not the literal phrase "United States", so the filter has to
