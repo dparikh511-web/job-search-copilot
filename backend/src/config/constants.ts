@@ -10,6 +10,10 @@ export function normalizeEmployerName(name: string): string {
     .trim();
 }
 
+// Runs happen every 8 hours; the extra hour overlaps consecutive runs so a job posted while a
+// run is in progress is never missed (repeats are skipped as already processed).
+export const SEARCH_WINDOW_HOURS = 9;
+
 export const H1B_MATCH_CONFIDENCE_THRESHOLD = 0.82;
 export const STACK_MATCH_SCORE_THRESHOLD = 0.3;
 // A near-perfect keyword match (almost every target_stack term present) tends to mean the

@@ -18,7 +18,7 @@ const DAILY_JOBS: DigestProfileConfig[] = [
     profileLabel: "Software Developer",
     searchLocation: "United States",
     limit: 45,
-    targetMatches: 6,
+    targetMatches: 2,
     keywordVariants: [
       "Software Engineer Full Stack TypeScript Node",
       "Full Stack Developer React Node TypeScript",
@@ -29,7 +29,7 @@ const DAILY_JOBS: DigestProfileConfig[] = [
     profileLabel: "Mobile Developer",
     searchLocation: "United States",
     limit: 35,
-    targetMatches: 5,
+    targetMatches: 2,
     keywordVariants: [
       "Mobile Application Developer Ionic Angular",
       "Mobile Developer Ionic Cordova Android",
@@ -64,10 +64,11 @@ async function runProfileUntilTarget(config: DigestProfileConfig): Promise<Diges
 }
 
 export function startScheduler(): void {
-  // Runs weekdays at 6:00 PM Eastern Time, regardless of the server's own timezone
+  // Runs weekdays at 6 AM, 2 PM and 10 PM Eastern (every 8 hours, matching the search window
+  // in SEARCH_WINDOW_HOURS so every posting is covered), regardless of the server's own timezone
   // (cloud hosts typically default to UTC, which would silently shift this otherwise).
   cron.schedule(
-    "0 18 * * 1-5",
+    "0 6,14,22 * * 1-5",
     async () => {
       console.log(`[${new Date().toISOString()}] Running scheduled daily digest...`);
       for (const job of DAILY_JOBS) {
@@ -82,5 +83,5 @@ export function startScheduler(): void {
     { timezone: "America/New_York" }
   );
 
-  console.log("Scheduler started — weekday digest runs at 6:00 PM Eastern Time.");
+  console.log("Scheduler started — weekday digest runs at 6 AM, 2 PM and 10 PM Eastern Time.");
 }

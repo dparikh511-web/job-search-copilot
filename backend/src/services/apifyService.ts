@@ -1,5 +1,6 @@
 import { ApifyClient } from "apify-client";
 import { env } from "../config/env";
+import { SEARCH_WINDOW_HOURS } from "../config/constants";
 
 const client = new ApifyClient({ token: env.apifyToken });
 
@@ -30,10 +31,16 @@ export async function scrapeJobs(
   location: string,
   limit: number = 20
 ): Promise<ScrapedJob[]> {
+  // The actor's own datePosted option only offers 24 hours / week / month. LinkedIn's search
+  // URL accepts any window in seconds (f_TPR=r<seconds>), and the actor takes a raw URL, so
+  // build the URL ourselves to get a tighter window.
+  const searchUrl =
+    `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}` +
+    `&location=${encodeURIComponent(location)}&position=1&pageNum=0` +
+    `&f_TPR=r${SEARCH_WINDOW_HOURS * 3600}`;
+
   const run = await client.actor(LINKEDIN_JOBS_ACTOR).call({
-    keywords,
-    location,
-    datePosted: "past24Hours",
+    urls: [searchUrl],
     limitPerSource: limit,
     scrapeCompany: false,
   });
