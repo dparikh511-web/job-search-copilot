@@ -35,8 +35,13 @@ function pickProfile(job: StuckJob, profiles: ProfileRow[]): ProfileRow {
 }
 
 async function main() {
+  // Optional first arg: only recover jobs scraped within the last N hours (default: all stuck jobs).
+  const sinceHours = process.argv[2] ? Number(process.argv[2]) : null;
   const stuckJobs = await query<StuckJob>(
-    "SELECT id, title, company, location, description, url, stack_match_score FROM jobs WHERE status = 'matched' ORDER BY scraped_at"
+    `SELECT id, title, company, location, description, url, stack_match_score FROM jobs
+     WHERE status = 'matched' AND ($1::float IS NULL OR scraped_at > now() - $1::float * interval '1 hour')
+     ORDER BY scraped_at`,
+    [sinceHours]
   );
   const profiles = await query<ProfileRow>("SELECT * FROM profile");
 

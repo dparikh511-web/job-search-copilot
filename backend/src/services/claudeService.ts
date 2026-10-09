@@ -4,6 +4,8 @@ import { StructuredResume } from "./resumeRenderer";
 
 const anthropic = new Anthropic({ apiKey: env.anthropicApiKey });
 
+const GENERATION_EFFORT = "medium";
+
 export interface ProfileForGeneration {
   name: string;
   master_resume_text: string;
@@ -73,9 +75,12 @@ async function callClaude(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-5-5",
     max_tokens: 16384,
+    // Thinking tokens are billed as output and were ~85% of each generation's cost at the
+    // default effort. Not in this SDK version's types yet, but the API accepts it.
+    ...({ output_config: { effort: GENERATION_EFFORT } } as object),
     system: `You are an expert technical resume writer. Given a candidate's background and a job description, produce a tailored resume and cover letter. Both have to look professional and not read as AI-written.
 
-    Summary: 45-55 words. If the most recent role spans multiple areas of work (e.g. frontend and backend), split it into labeled sub-sections like the reference resume below (e.g. "Frontend:" and "Backend:", each with their own bullets) instead of one flat list — 7-8 bullets under the primary sub-section, 2-3 under the secondary one, 18-24 words each. Older/shorter role: 2-3 bullet points at 15-20 words each. Skills: categorized into labeled lines by type (e.g. Programming Languages, Frameworks and Libraries, Databases, DevOps and Tools, AI Tools), matching the reference resume's categories, not one flat comma-separated line. Total resume body should be 380-440 words — err toward the lower end when in doubt, since going over costs a page.
+    Summary: 50-58 words (count them; shorter than 50 is too thin). If the most recent role spans multiple areas of work (e.g. frontend and backend), split it into labeled sub-sections like the reference resume below (e.g. "Frontend:" and "Backend:", each with their own bullets) instead of one flat list — 7-8 bullets under the primary sub-section, 2-3 under the secondary one, 18-24 words each. Older/shorter role: 2-3 bullet points at 15-20 words each. Skills: categorized into labeled lines by type (e.g. Programming Languages, Frameworks and Libraries, Databases, DevOps and Tools, AI Tools), matching the reference resume's categories, not one flat comma-separated line. Total resume body should be 420-470 words, since the page is shrunk to fit automatically if it runs long.
 
     Don't use the Oxford comma before "and" in a list — write "confirm the item, add payment and take signature," not "confirm the item, add payment, and take signature." Don't use em-dashes ("—").
 
@@ -86,7 +91,7 @@ async function callClaude(
 
     Do not use buzzwords: "leverage," "utilize," "seamless," "robust," "cutting-edge," "dynamic," "synergy," "spearheaded."
 
-    Cover letter: 220-280 words, 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Write it the way the candidate would actually type it themselves in one sitting, not a template filled in by a machine. Vary sentence length on purpose — some short, some longer, not a steady run of medium-length sentences. Use contractions ("I've", "I'm", "don't") like a real person would, not stiff formal phrasing throughout.
+    Cover letter: 250-290 words (count them; under 240 is too thin), 3-4 short paragraphs, addressed generically ("Dear Hiring Manager,"). Write it the way the candidate would actually type it themselves in one sitting, not a template filled in by a machine. Vary sentence length on purpose — some short, some longer, not a steady run of medium-length sentences. Use contractions ("I've", "I'm", "don't") like a real person would, not stiff formal phrasing throughout.
 
     Never open with "I am writing to apply for the [role] at [company]" or any close variant of it — that exact construction is the single biggest tell of an AI-written cover letter. Instead open with whatever's actually most interesting or relevant first: a specific detail about the role or company, or the candidate's most relevant experience, stated plainly.
 
@@ -121,10 +126,27 @@ async function callClaude(
     messages: [
       {
         role: "user",
-        content: `Candidate profile:\n${JSON.stringify(profile)}\n\nJob description:\n${jobDescription}`,
+        // Only what the model needs: the master resume is already in the system prompt, and
+        // the full row also carries private fields (e.g. work-authorization answers) that
+        // must not leak into a resume or cover letter.
+        content: `Candidate profile:\n${JSON.stringify({
+          name: profile.name,
+          skills: profile.skills,
+          experience: profile.experience,
+          target_stack: profile.target_stack,
+        })}\n\nJob description:\n${jobDescription}`,
       },
     ],
   });
+
+  const usageDetails = response.usage as {
+    input_tokens: number;
+    output_tokens: number;
+    output_tokens_details?: { thinking_tokens?: number };
+  };
+  console.log(
+    `Claude usage: input=${usageDetails.input_tokens} output=${usageDetails.output_tokens} thinking=${usageDetails.output_tokens_details?.thinking_tokens ?? 0}`
+  );
 
   const textBlock = response.content.find((block) => block.type === "text");
   if (!textBlock || textBlock.type !== "text") {
