@@ -70,3 +70,4 @@ CREATE TABLE IF NOT EXISTS digest_log (
   sent_at      TIMESTAMPTZ,
   email_status TEXT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_digest_log_date ON digest_log (digest_date);
