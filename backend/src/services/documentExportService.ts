@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import {
   Document,
   Packer,
@@ -9,12 +9,36 @@ import {
 } from "docx";
 import { StructuredResume } from "./resumeRenderer";
 
+// One shared Chromium for the life of the server. Launching a fresh Chrome per PDF leaked
+// zombie child processes (the server's PID 1 never reaps them): ~880 piled up until the
+// container hit its 1000-process limit and every PDF failed with "Resource temporarily
+// unavailable". A single long-lived browser spawns its helpers once, and each PDF just
+// opens and closes a page.
+let browserPromise: Promise<Browser> | null = null;
+
+function getBrowser(): Promise<Browser> {
+  if (!browserPromise) {
+    const launching = puppeteer.launch({
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-crash-reporter", // the crashpad helper was the process that leaked
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+      ],
+    });
+    browserPromise = launching;
+    launching
+      .then((browser) => browser.on("disconnected", () => { browserPromise = null; }))
+      .catch(() => { browserPromise = null; });
+  }
+  return browserPromise;
+}
+
 export async function renderResumePdf(html: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  const browser = await getBrowser();
+  const page = await browser.newPage();
   try {
-    const page = await browser.newPage();
     await page.setViewport({ width: 816, height: 1056 });
     await page.setContent(html, { waitUntil: "load" });
     const pdfBytes = await page.pdf({
@@ -24,7 +48,7 @@ export async function renderResumePdf(html: string): Promise<Buffer> {
     });
     return Buffer.from(pdfBytes);
   } finally {
-    await browser.close();
+    await page.close().catch(() => {});
   }
 }
 
